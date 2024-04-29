@@ -102,6 +102,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
     const [chatTypeFilter, setChatTypeFilter] = useState([])
     const [startDate, setStartDate] = useState(new Date().setMonth(new Date().getMonth() - 1))
     const [endDate, setEndDate] = useState(new Date())
+    const [leadEmail, setLeadEmail] = useState('')
 
     const getChatmessageApi = useApi(chatmessageApi.getAllChatmessageFromChatflow)
     const getChatmessageFromPKApi = useApi(chatmessageApi.getChatmessageFromPK)
@@ -408,6 +409,11 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
     }
 
     useEffect(() => {
+        const leadEmailFromChatMessages = chatMessages.filter((message) => message.type === 'userMessage')[0]?.leadEmail
+        setLeadEmail(leadEmailFromChatMessages)
+    }, [chatMessages, selectedMessageIndex])
+
+    useEffect(() => {
         if (getChatmessageFromPKApi.data) {
             getChatMessages(getChatmessageFromPKApi.data)
         }
@@ -450,6 +456,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
             setStartDate(new Date().setMonth(new Date().getMonth() - 1))
             setEndDate(new Date())
             setStats([])
+            setLeadEmail('')
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -673,8 +680,29 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
                                         </div>
                                     </div>
                                 )}
+                                {leadEmail && (
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'start',
+                                            width: '100%',
+                                            height: '48px',
+                                            padding: '12px',
+                                            marginLeft: '20px',
+                                            marginBottom: '20px',
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: `${customization.borderRadius}px`,
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        {leadEmail}
+                                    </Box>
+                                )}
                                 <div
                                     style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
                                         marginLeft: '20px',
                                         border: '1px solid #e0e0e0',
                                         borderRadius: `${customization.borderRadius}px`

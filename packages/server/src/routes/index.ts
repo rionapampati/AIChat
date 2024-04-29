@@ -16,6 +16,7 @@ import internalPredictionRouter from './internal-predictions'
 import ipRouter from './ip'
 import getUploadFileRouter from './get-upload-file'
 import getUploadPathRouter from './get-upload-path'
+import leadsRouter from './leads'
 import loadPromptRouter from './load-prompts'
 import marketplacesRouter from './marketplaces'
 import nodeConfigRouter from './node-configs'
@@ -57,6 +58,7 @@ router.use('/internal-prediction', internalPredictionRouter)
 router.use('/ip', ipRouter)
 router.use('/get-upload-file', getUploadFileRouter)
 router.use('/get-upload-path', getUploadPathRouter)
+router.use('/leads', leadsRouter)
 router.use('/load-prompt', loadPromptRouter)
 router.use('/marketplaces', marketplacesRouter)
 router.use('/node-config', nodeConfigRouter)
