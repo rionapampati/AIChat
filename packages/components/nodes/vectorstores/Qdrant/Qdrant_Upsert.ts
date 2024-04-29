@@ -68,8 +68,16 @@ class QdrantUpsert_VectorStores implements INode {
                 label: 'Vector Dimension',
                 name: 'qdrantVectorDimension',
                 type: 'number',
-                default: 1536,
+                default: 1024,
                 additionalParams: true
+            },
+            {
+                label: 'Batch Size',
+                name: 'batchSize',
+                type: 'number',
+                default: 1000,
+                additionalParams: true,
+                optional: true
             },
             {
                 label: 'Similarity',
@@ -132,6 +140,7 @@ class QdrantUpsert_VectorStores implements INode {
         const embeddings = nodeData.inputs?.embeddings as Embeddings
         const qdrantSimilarity = nodeData.inputs?.qdrantSimilarity
         const qdrantVectorDimension = nodeData.inputs?.qdrantVectorDimension
+        const batchSize = nodeData.inputs?.batchSize
 
         const output = nodeData.outputs?.output as string
         const topK = nodeData.inputs?.topK as string
@@ -174,16 +183,31 @@ class QdrantUpsert_VectorStores implements INode {
             retrieverConfig.filter = typeof queryFilter === 'object' ? queryFilter : JSON.parse(queryFilter)
         }
 
-        const vectorStore = await QdrantVectorStore.fromDocuments(finalDocs, embeddings, dbConfig)
-
-        if (output === 'retriever') {
-            const retriever = vectorStore.asRetriever(retrieverConfig)
-            return retriever
-        } else if (output === 'vectorStore') {
-            ;(vectorStore as any).k = k
-            return vectorStore
+        let vectorStore: QdrantVectorStore | undefined = undefined;
+        // try {
+        //     // try first to upsert all documents in one go
+        //     vectorStore = await QdrantVectorStore.fromDocuments(finalDocs, embeddings, dbConfig)
+        // } catch (e) {
+            // in this case we fallback to batch mode
+        for(let i=0; i<finalDocs.length; i+=batchSize) {
+            const batch = finalDocs.slice(i, i+batchSize)
+            vectorStore = await QdrantVectorStore.fromDocuments(batch, embeddings, dbConfig)
         }
-        return vectorStore
+        // }
+        
+
+        if(vectorStore === undefined) {
+            throw new Error('No documents to upsert')
+        } else {
+            if (output === 'retriever') {
+                const retriever = vectorStore.asRetriever(retrieverConfig)
+                return retriever
+            } else if (output === 'vectorStore') {
+                ;(vectorStore as any).k = k
+                return vectorStore
+            }
+            return vectorStore
+        }     
     }
 }
 
